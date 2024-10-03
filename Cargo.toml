@@ -1,0 +1,94 @@
+[package]
+edition = "2021"
+name = "sensor-vertigo"
+version = "0.1.0"
+
+[dependencies]
+cortex-m = { version = "0.7.7", features = [
+	"inline-asm",
+	"critical-section-single-core",
+] }
+cortex-m-rt = "0.6.15"
+defmt = { version = "0.3.8" }
+defmt-rtt = { version = "0.4.1" }
+panic-probe = { version = "0.3.2", features = ["print-defmt"] }
+static_cell = { version = "2.1.0", features = ["nightly"] }
+stm32-metapac = { version = "15.0.0", features = ["stm32wb55vg"] }
+nalgebra = { version = "*", default-features = false, features = ["libm"] }
+libm = "0.2.8"
+micromath = { version = "2.1.0", features = ["vector"] }
+embedded-graphics = { version = "0.8" }
+num-traits = { version = "0.2.19", default-features = false, features = [
+	"libm",
+] }
+
+[dependencies.embedded-hal-async]
+version = "1"
+features = ["defmt-03"]
+
+[dependencies.embassy-time]
+git = "https://github.com/embassy-rs/embassy"
+rev = "6e0b08291b63a0da8eba9284869d1d046bc5dabb"
+features = ["tick-hz-32_768", "defmt"]
+
+[dependencies.embassy-sync]
+git = "https://github.com/embassy-rs/embassy"
+rev = "6e0b08291b63a0da8eba9284869d1d046bc5dabb"
+features = ["defmt"]
+
+[dependencies.embassy-futures]
+git = "https://github.com/embassy-rs/embassy"
+rev = "6e0b08291b63a0da8eba9284869d1d046bc5dabb"
+features = ["defmt"]
+
+[dependencies.embassy-executor]
+git = "https://github.com/embassy-rs/embassy"
+rev = "6e0b08291b63a0da8eba9284869d1d046bc5dabb"
+features = [
+	"arch-cortex-m",
+	"executor-thread",
+	"integrated-timers",
+	"nightly",
+	"defmt",
+]
+
+[dependencies.embassy-stm32]
+git = "https://github.com/embassy-rs/embassy"
+rev = "6e0b08291b63a0da8eba9284869d1d046bc5dabb"
+features = [
+	"memory-x",
+	"stm32wb55vg",
+	"time-driver-any",
+	"exti",
+	"unstable-pac",
+	"defmt",
+]
+
+[dependencies.embassy-embedded-hal]
+git = "https://github.com/embassy-rs/embassy"
+rev = "6e0b08291b63a0da8eba9284869d1d046bc5dabb"
+features = ["defmt"]
+
+[dependencies.embassy-usb]
+git = "https://github.com/embassy-rs/embassy"
+rev = "6e0b08291b63a0da8eba9284869d1d046bc5dabb"
+features = ["defmt", "max-interface-count-4", "max-handler-count-4"]
+
+[dependencies.embassy-stm32-wpan]
+git = "https://github.com/embassy-rs/embassy"
+rev = "6e0b08291b63a0da8eba9284869d1d046bc5dabb"
+features = ["stm32wb55vg", "defmt", "ble"]
+
+[profile.dev]
+debug = true
+lto = false
+opt-level = 0
+incremental = true
+
+[profile.dev.package."*"]
+opt-level = "z"
+
+[profile.release]
+debug = false
+lto = true
+opt-level = "z"

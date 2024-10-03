@@ -1,0 +1,15 @@
+[default.general]
+chip = "STM32WB55VGQx"
+
+[default.probe]
+protocol = "Swd"
+
+[default.reset]
+enabled = true
+halt_afterwards = false
+
+[default.rtt]
+enabled = true
+
+[default.gdb]
+enabled = false

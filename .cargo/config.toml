@@ -1,0 +1,13 @@
+# This file was automatically generated.
+
+[target.thumbv7em-none-eabihf]
+runner = 'probe-rs run --chip STM32WB55VGQx'
+
+[build]
+target = "thumbv7em-none-eabihf"
+
+[env]
+DEFMT_LOG = "debug"
+
+[net]
+git-fetch-with-cli = true
