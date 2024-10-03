@@ -11,18 +11,12 @@ use embassy_stm32::{
     bind_interrupts,
     gpio::{self, Output},
     i2c::{self, I2c},
-    mode::{Async, Blocking},
     peripherals,
     rcc::WPAN_DEFAULT,
     time::khz,
     usb,
 };
-use embassy_sync::{
-    blocking_mutex::{raw::NoopRawMutex, Mutex as SyncMutex},
-    mutex::Mutex,
-};
 use embassy_time::Timer;
-use static_cell::StaticCell;
 use stts22h::STTS22H;
 use usb_interface::pipe_data_to_usb;
 use {defmt_rtt as _, panic_probe as _};
@@ -49,16 +43,7 @@ async fn main(spawner: Spawner) {
     Output::new(p.PC7, gpio::Level::High, gpio::Speed::VeryHigh);
     trace!("Power on external sensors");
 
-    let i2c = I2c::new(
-        p.I2C1,
-        p.PB8,
-        p.PB9,
-        Irqs,
-        p.DMA1_CH1,
-        p.DMA1_CH2,
-        khz(100),
-        i2c::Config::default(),
-    );
+    let i2c = I2c::new_blocking(p.I2C1, p.PB8, p.PB9, khz(100), i2c::Config::default());
 
     // Attente entre i2c setup et utilisation
     // Peut-etre pour attendre une protagation de la config

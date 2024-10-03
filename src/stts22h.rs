@@ -1,7 +1,7 @@
 use embassy_embedded_hal::shared_bus::I2cDeviceError;
 use embassy_stm32::{
     i2c::{self, I2c},
-    mode::{Async, Blocking},
+    mode::Blocking,
 };
 use embassy_time::Timer;
 use embedded_hal_async::i2c::I2c as _;
@@ -99,25 +99,23 @@ impl defmt::Format for Status {
 
 /// Temperature sensor
 pub struct STTS22H {
-    i2c: I2c<'static, Async>,
+    i2c: I2c<'static, Blocking>,
 }
 impl STTS22H {
     const ADDRESS: u8 = 0x70 >> 1;
-    pub fn new(i2c: I2c<'static, Async>) -> Self {
+    pub fn new(i2c: I2c<'static, Blocking>) -> Self {
         STTS22H { i2c }
     }
 
     pub async fn init(&mut self) -> Result<(), i2c::Error> {
         self.i2c
-            .write(Self::ADDRESS, &[Reg::CTRL as u8, Ctrl::IF_ADD_INC])
-            .await
+            .blocking_write(Self::ADDRESS, &[Reg::CTRL as u8, Ctrl::IF_ADD_INC])
     }
 
     pub async fn id(&mut self) -> Result<u8, i2c::Error> {
         let mut res = [0; 1];
         self.i2c
-            .write_read(Self::ADDRESS, &[Reg::WHOAMI as u8], &mut res)
-            .await?;
+            .blocking_write_read(Self::ADDRESS, &[Reg::WHOAMI as u8], &mut res)?;
 
         Ok(res[0])
     }
@@ -125,12 +123,10 @@ impl STTS22H {
     pub async fn temperature(&mut self) -> Result<f32, i2c::Error> {
         let mut reg = [0; 1];
         self.i2c
-            .write_read(Self::ADDRESS, &[Reg::CTRL as u8], &mut reg)
-            .await?;
+            .blocking_write_read(Self::ADDRESS, &[Reg::CTRL as u8], &mut reg)?;
 
         self.i2c
-            .write(Self::ADDRESS, &[Reg::CTRL as u8, reg[0] | Ctrl::ONE_SHOT])
-            .await?;
+            .blocking_write(Self::ADDRESS, &[Reg::CTRL as u8, reg[0] | Ctrl::ONE_SHOT])?;
 
         while self.status().await?.busy() {
             Timer::after_millis(100).await;
@@ -138,8 +134,7 @@ impl STTS22H {
 
         let mut temp = [0; 2];
         self.i2c
-            .write_read(Self::ADDRESS, &[Reg::TEMP_L_OUT as u8], &mut temp)
-            .await?;
+            .blocking_write_read(Self::ADDRESS, &[Reg::TEMP_L_OUT as u8], &mut temp)?;
 
         let temp = i16::from_le_bytes(temp) as f32 / 100.;
 
@@ -149,8 +144,7 @@ impl STTS22H {
     pub async fn status(&mut self) -> Result<Status, i2c::Error> {
         let mut res = [0; 1];
         self.i2c
-            .write_read(Self::ADDRESS, &[Reg::STATUS as u8], &mut res)
-            .await?;
+            .blocking_write_read(Self::ADDRESS, &[Reg::STATUS as u8], &mut res)?;
 
         Ok(Status(res[0]))
     }
