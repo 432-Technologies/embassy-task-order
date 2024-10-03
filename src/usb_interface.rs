@@ -14,7 +14,7 @@ use embassy_usb::{
 const DEVICE_INTERFACE_GUIDS: &[&str] = &["{AFB9A6FB-30BA-44BC-9232-806CFC875321}"];
 
 #[embassy_executor::task]
-pub async fn pipe_datas_to_usb(usb: USB, pa12: PA12, pa11: PA11) {
+pub async fn pipe_data_to_usb(usb: USB, pa12: PA12, pa11: PA11) {
     let driver = UsbDriver::new(usb, Irqs, pa12, pa11);
     // Create embassy-usb Config
     let mut config = Config::new(0xDEAD, 0xC0DE);

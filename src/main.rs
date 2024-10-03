@@ -21,7 +21,7 @@ use embassy_sync::{blocking_mutex::raw::NoopRawMutex, mutex::Mutex};
 use embassy_time::Timer;
 use static_cell::StaticCell;
 use stts22h::STTS22H;
-use usb_interface::pipe_datas_to_usb;
+use usb_interface::pipe_data_to_usb;
 use {defmt_rtt as _, panic_probe as _};
 
 bind_interrupts!(
@@ -74,7 +74,7 @@ async fn main(spawner: Spawner) {
     debug!("STTS22H init");
 
     debug!("Init done");
-    unwrap!(spawner.spawn(pipe_datas_to_usb(p.USB, p.PA12, p.PA11)));
+    unwrap!(spawner.spawn(pipe_data_to_usb(p.USB, p.PA12, p.PA11)));
     unwrap!(spawner.spawn(sensor_reading(stts22h)));
 
     loop {
