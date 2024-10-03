@@ -11,13 +11,16 @@ use embassy_stm32::{
     bind_interrupts,
     gpio::{self, Output},
     i2c::{self, I2c},
-    mode::Async,
+    mode::{Async, Blocking},
     peripherals,
     rcc::WPAN_DEFAULT,
     time::khz,
     usb,
 };
-use embassy_sync::{blocking_mutex::raw::NoopRawMutex, mutex::Mutex};
+use embassy_sync::{
+    blocking_mutex::{raw::NoopRawMutex, Mutex as SyncMutex},
+    mutex::Mutex,
+};
 use embassy_time::Timer;
 use static_cell::StaticCell;
 use stts22h::STTS22H;
@@ -31,11 +34,6 @@ bind_interrupts!(
         USB_LP => usb::InterruptHandler<peripherals::USB>;
     }
 );
-
-type I2cBUS = I2c<'static, Async>;
-type I2cDevice =
-    embassy_embedded_hal::shared_bus::asynch::i2c::I2cDevice<'static, NoopRawMutex, I2cBUS>;
-static I2C_BUS: StaticCell<Mutex<NoopRawMutex, I2cBUS>> = StaticCell::new();
 
 #[embassy_executor::main]
 async fn main(spawner: Spawner) {
@@ -61,21 +59,19 @@ async fn main(spawner: Spawner) {
         khz(100),
         i2c::Config::default(),
     );
-    let i2c_bus = Mutex::new(i2c);
-    let i2c_bus = I2C_BUS.init(i2c_bus);
 
     // Attente entre i2c setup et utilisation
     // Peut-etre pour attendre une protagation de la config
     Timer::after_millis(100).await;
 
-    let mut stts22h = STTS22H::new(I2cDevice::new(i2c_bus));
+    let mut stts22h = STTS22H::new(i2c);
     unwrap!(stts22h.init().await);
     defmt::assert_eq!(unwrap!(stts22h.id().await), 0xA0);
     debug!("STTS22H init");
 
     debug!("Init done");
-    unwrap!(spawner.spawn(sensor_reading(stts22h)));
     unwrap!(spawner.spawn(pipe_data_to_usb(p.USB, p.PA12, p.PA11)));
+    unwrap!(spawner.spawn(sensor_reading(stts22h)));
 
     loop {
         core::future::pending::<()>().await;

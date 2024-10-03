@@ -1,6 +1,8 @@
-use crate::I2cDevice;
 use embassy_embedded_hal::shared_bus::I2cDeviceError;
-use embassy_stm32::i2c;
+use embassy_stm32::{
+    i2c::{self, I2c},
+    mode::{Async, Blocking},
+};
 use embassy_time::Timer;
 use embedded_hal_async::i2c::I2c as _;
 
@@ -97,21 +99,21 @@ impl defmt::Format for Status {
 
 /// Temperature sensor
 pub struct STTS22H {
-    i2c: I2cDevice,
+    i2c: I2c<'static, Async>,
 }
 impl STTS22H {
     const ADDRESS: u8 = 0x70 >> 1;
-    pub fn new(i2c: I2cDevice) -> Self {
-        STTS22H { i2c: i2c }
+    pub fn new(i2c: I2c<'static, Async>) -> Self {
+        STTS22H { i2c }
     }
 
-    pub async fn init(&mut self) -> Result<(), I2cDeviceError<i2c::Error>> {
+    pub async fn init(&mut self) -> Result<(), i2c::Error> {
         self.i2c
             .write(Self::ADDRESS, &[Reg::CTRL as u8, Ctrl::IF_ADD_INC])
             .await
     }
 
-    pub async fn id(&mut self) -> Result<u8, I2cDeviceError<i2c::Error>> {
+    pub async fn id(&mut self) -> Result<u8, i2c::Error> {
         let mut res = [0; 1];
         self.i2c
             .write_read(Self::ADDRESS, &[Reg::WHOAMI as u8], &mut res)
@@ -120,7 +122,7 @@ impl STTS22H {
         Ok(res[0])
     }
 
-    pub async fn temperature(&mut self) -> Result<f32, I2cDeviceError<i2c::Error>> {
+    pub async fn temperature(&mut self) -> Result<f32, i2c::Error> {
         let mut reg = [0; 1];
         self.i2c
             .write_read(Self::ADDRESS, &[Reg::CTRL as u8], &mut reg)
@@ -144,7 +146,7 @@ impl STTS22H {
         Ok(temp)
     }
 
-    pub async fn status(&mut self) -> Result<Status, I2cDeviceError<i2c::Error>> {
+    pub async fn status(&mut self) -> Result<Status, i2c::Error> {
         let mut res = [0; 1];
         self.i2c
             .write_read(Self::ADDRESS, &[Reg::STATUS as u8], &mut res)
