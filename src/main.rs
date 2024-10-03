@@ -74,8 +74,8 @@ async fn main(spawner: Spawner) {
     debug!("STTS22H init");
 
     debug!("Init done");
-    unwrap!(spawner.spawn(pipe_data_to_usb(p.USB, p.PA12, p.PA11)));
     unwrap!(spawner.spawn(sensor_reading(stts22h)));
+    unwrap!(spawner.spawn(pipe_data_to_usb(p.USB, p.PA12, p.PA11)));
 
     loop {
         core::future::pending::<()>().await;
